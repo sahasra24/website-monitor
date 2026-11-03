@@ -1,0 +1,16 @@
+services:
+  monitor:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_PATH: /data/monitor.db
+      CHECK_INTERVAL: 60s
+      REQUEST_TIMEOUT: 10s
+      WORKERS: 10
+      RETRIES: 1
+    volumes:
+      - monitor-data:/data
+
+volumes:
+  monitor-data:
