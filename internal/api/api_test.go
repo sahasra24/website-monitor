@@ -76,3 +76,32 @@ func TestAddSiteRejectsMultipleJSONValues(t *testing.T) {
 		t.Fatalf("status = %d, want %d", response.Code, http.StatusBadRequest)
 	}
 }
+
+func TestDashboardIsServedAtRoot(t *testing.T) {
+	database, err := store.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+
+	handler := New(database, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	request := httptest.NewRequest(http.MethodGet, "/", nil)
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	if response.Code != http.StatusOK {
+		t.Fatalf("dashboard status = %d, want %d", response.Code, http.StatusOK)
+	}
+	if got := response.Header().Get("Content-Type"); got != "text/html; charset=utf-8" {
+		t.Fatalf("content type = %q, want HTML", got)
+	}
+	if !bytes.Contains(response.Body.Bytes(), []byte("Monitor dashboard")) {
+		t.Fatal("dashboard page content was not served")
+	}
+
+	request = httptest.NewRequest(http.MethodGet, "/unknown", nil)
+	response = httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	if response.Code != http.StatusNotFound {
+		t.Fatalf("unknown path status = %d, want %d", response.Code, http.StatusNotFound)
+	}
+}

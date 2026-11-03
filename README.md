@@ -20,6 +20,8 @@ Invoke-RestMethod -Method Post -Uri http://localhost:8080/api/sites `
   -ContentType 'application/json' -Body '{"name":"Example","url":"https://example.com"}'
 ```
 
+Open [http://localhost:8080](http://localhost:8080) for the browser dashboard. From there you can add websites, see their latest status and uptime, manually refresh, and open recent check history. The dashboard refreshes automatically every 30 seconds.
+
 The monitor runs a check immediately at startup and then checks at the configured interval.
 
 ## API

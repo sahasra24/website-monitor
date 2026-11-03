@@ -1,6 +1,7 @@
 package api
 
 import (
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"io"
@@ -12,6 +13,9 @@ import (
 	"website-monitor/internal/store"
 )
 
+//go:embed dashboard.html
+var dashboardHTML []byte
+
 type API struct {
 	store  *store.Store
 	logger *slog.Logger
@@ -20,12 +24,25 @@ type API struct {
 func New(database *store.Store, logger *slog.Logger) http.Handler {
 	a := &API{store: database, logger: logger}
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /", a.dashboard)
 	mux.HandleFunc("GET /healthz", a.health)
 	mux.HandleFunc("GET /api/sites", a.listSites)
 	mux.HandleFunc("POST /api/sites", a.addSite)
 	mux.HandleFunc("GET /api/summary", a.summaries)
 	mux.HandleFunc("GET /api/sites/{id}/history", a.history)
 	return mux
+}
+
+func (a *API) dashboard(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-cache")
+	if _, err := w.Write(dashboardHTML); err != nil {
+		a.logger.Error("write dashboard", "error", err)
+	}
 }
 
 func (a *API) health(w http.ResponseWriter, _ *http.Request) {

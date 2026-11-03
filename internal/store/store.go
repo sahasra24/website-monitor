@@ -35,12 +35,12 @@ type Check struct {
 
 type Summary struct {
 	Site
-	TotalChecks   int64     `json:"total_checks"`
-	Successful    int64     `json:"successful_checks"`
-	UptimePercent float64   `json:"uptime_percent"`
-	LastCheckedAt time.Time `json:"last_checked_at,omitempty"`
-	LastStatus    int       `json:"last_status_code"`
-	IsUp          bool      `json:"is_up"`
+	TotalChecks   int64      `json:"total_checks"`
+	Successful    int64      `json:"successful_checks"`
+	UptimePercent float64    `json:"uptime_percent"`
+	LastCheckedAt *time.Time `json:"last_checked_at,omitempty"`
+	LastStatus    int        `json:"last_status_code"`
+	IsUp          bool       `json:"is_up"`
 }
 
 func Open(path string) (*Store, error) {
@@ -176,7 +176,8 @@ func (s *Store) Summaries(ctx context.Context) ([]Summary, error) {
 			return nil, fmt.Errorf("scan summary: %w", err)
 		}
 		if lastChecked.Valid {
-			summary.LastCheckedAt = lastChecked.Time
+			checkedAt := lastChecked.Time
+			summary.LastCheckedAt = &checkedAt
 		}
 		if summary.TotalChecks > 0 {
 			summary.UptimePercent = float64(summary.Successful) / float64(summary.TotalChecks) * 100
